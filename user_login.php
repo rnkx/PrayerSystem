@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->bind_result($id, $hash);
 
     if ($stmt->fetch() && password_verify($password, $hash)) {
-        $_SESSION['user_id'] = $id;
+        $_SESSION['user_id'] = $id; 
         header("Location: index.php");
         exit;
     } else {
