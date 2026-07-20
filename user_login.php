@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8"> 
   <title>User Login | Prayer System</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
