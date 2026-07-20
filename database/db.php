@@ -1,9 +1,11 @@
 <?php
+$servername = "localhost";
+$username   = "root";
+$password   = "";
+$dbname     = "prayer_system";
 
-$conn = new mysqli("localhost","root","","prayer_system");
-
-if($conn->connect_error){
-die("Connection Failed");
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
-
 ?>

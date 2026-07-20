@@ -1,39 +1,275 @@
-body{
-
-background:#f5f5f5;
-
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.card{
-
-border-radius:15px;
-
-transition:.3s;
-
+/* Body & Layout */
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #333;
+  display: flex;
+  flex-direction: column;
 }
 
-.card:hover{
-
-transform:scale(1.02);
-
+/* Main content grows to push footer down */
+main {
+  flex: 1;
+  padding: 20px;
 }
 
-.card img{
-
-height:250px;
-
-object-fit:cover;
-
+/* Navbar */
+header nav {
+  background: #4a90e2;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.navbar{
-
-margin-bottom:20px;
-
+header nav a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 15px;
+  font-weight: bold;
+  transition: color 0.3s, border-bottom 0.3s;
 }
 
-audio{
-
-width:100%;
-
+header nav a:hover {
+  color: #ffd700;
+  border-bottom: 2px solid #ffd700;
 }
+
+
+/* Footer (sticky at bottom) */
+footer {
+  background: #eee;
+  text-align: center;
+  padding: 15px;
+  font-size: 0.9em;
+  color: #555;
+  border-top: 2px solid #ddd;
+}
+/* Headings */
+h1, h2, h3 {
+  margin-bottom: 15px;
+  color: #222;
+  text-align: center;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(to right, #4a90e2, #357ab8);
+  color: #fff;
+  border-radius: 8px;
+  margin: 20px auto;
+  max-width: 900px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.hero h1 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+}
+.hero p {
+  font-size: 1.2em;
+  margin-bottom: 30px;
+}
+.hero a {
+  display: inline-block;
+  margin: 0 10px;
+  padding: 12px 20px;
+  background: #ffd700;
+  color: #333;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+.hero a:hover {
+  background: #ffcc00;
+}
+
+/* Forms */
+form {
+  margin: 20px auto;
+  padding: 20px;
+  max-width: 500px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+form input, form textarea, form select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+form button {
+  background: #4a90e2;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1em;
+}
+form button:hover {
+  background: #357ab8;
+}
+
+/* Content Cards */
+.sutra, .melody {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 8px;
+  max-width: 700px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.sutra h3, .melody h3 {
+  color: #4a90e2;
+}
+.sutra a {
+  display: inline-block;
+  margin-top: 10px;
+  color: #357ab8;
+  text-decoration: none;
+}
+.sutra a:hover {
+  text-decoration: underline;
+}
+
+/* Audio Player */
+audio {
+  margin: 10px 0;
+  width: 100%;
+}
+/* Sticky footer setup is already in html, body, main */
+.site-footer {
+  background: #4a90e2;
+  color: #fff;
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9em;
+  border-top: 4px solid #357ab8;
+  margin-top: auto; /* ensures footer stays at bottom */
+}
+
+/* Optional hover effect for footer links */
+.site-footer a {
+  color: #ffd700;
+  text-decoration: none;
+  margin: 0 8px;
+}
+.site-footer a:hover {
+  text-decoration: underline;
+}
+.empty-message {
+  text-align: center;
+  margin: 60px auto;
+  max-width: 500px;
+  background: #fff;
+  border: 2px dashed #4a90e2;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+}
+
+.empty-message .icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.empty-message h3 {
+  font-size: 24px;
+  color: #4a90e2;
+  margin-bottom: 10px;
+}
+
+.empty-message p {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.btn-upload {
+  display: inline-block;
+  padding: 12px 20px;
+  background: #4a90e2;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-upload:hover {
+  background: #357ab8;
+  transform: translateY(-2px);
+}
+.sutras-grid,
+.melodies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  align-items: stretch;       /* ✅ equal height rows */
+  justify-content: center;    /* ✅ center the cards */
+}
+
+.sutra,
+.melody {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 420px;              /* ✅ fixed card height */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+
+
+.sutra img,
+.melody img {
+  width: 100%;
+  aspect-ratio: 1 / 1;   /* ✅ square shape */
+  object-fit: cover;     /* ✅ crops neatly without distortion */
+  background: #eee;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.sutra h3,
+.melody h3 {
+  margin: 10px;
+  font-size: 20px;
+  color: #4a90e2;
+  text-align: center;
+}
+
+.sutra p,
+.melody p {
+  margin: 0 15px;
+  color: #555;
+  line-height: 1.4;
+  text-align: center;
+  flex-grow: 1; /* ✅ fills space evenly */
+}
+
+.sutra a,
+.melody audio {
+  margin: 10px auto 15px;
+}
+
