@@ -1,162 +1,455 @@
 <?php
 session_start();
+
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['admin_id'])) {
     header("Location: user_login.php");
-    exit;
+    exit();
 }
+
 include('database/db.php');
+
+$keyword = "";
+
+// Search functionality
+if (isset($_GET['search'])) {
+
+    $keyword = trim($_GET['search']);
+
+    $stmt = $conn->prepare("
+        SELECT *
+        FROM melodies
+        WHERE title LIKE CONCAT('%', ?, '%')
+        OR description LIKE CONCAT('%', ?, '%')
+        ORDER BY title ASC
+    ");
+
+    $stmt->bind_param("ss", $keyword, $keyword);
+
+    $stmt->execute();
+
+    $melodies = $stmt->get_result();
+
+} else {
+
+    $melodies = $conn->query("
+        SELECT *
+        FROM melodies
+        ORDER BY title ASC
+    ");
+
+}
+
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Prayer Melodies</title>
-  <link rel="stylesheet" href="css/style.css">
-  <style>
-    .page-title { text-align:center; margin:30px 0; color:#2c3e50; font-size:28px; }
 
- .melodies-grid {
- display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
-  align-items: stretch;       /* ✅ all cards equal height */
-  justify-content: center;    /* ✅ grid centered */
-   text-align: center;
-    display: flex;
-   
-      align-items: center;
+<meta charset="UTF-8">
 
-  
-}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-.melody {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* ✅ keeps audio at bottom */
-  height: 100%;                   /* ✅ equal card height */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
+<title>Prayer Melodies</title>
 
-.melody img {
-  width: 100%;
-  height: 220px;        /* ✅ slightly taller for balance */
-  object-fit: cover;    /* ✅ crops to fill without distortion */
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  background: #eee;
-}
 
-.melody h3 {
-  margin: 15px;
-  font-size: 22px;
-  color: #4a90e2;
-  text-align: center;
-}
+<!-- Bootstrap CSS -->
 
-.melody p {
-  margin: 0 15px 15px;
-  color: #555;
-  line-height: 1.6;
-  text-align: center;
-  flex-grow: 1; /* ✅ fills space evenly */
-}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+rel="stylesheet">
 
-.melody audio {
-  margin: 15px auto;
+
+<link rel="stylesheet" href="css/style.css">
+
+
+<style>
+
+body{
+    background:#f4f7fb;
 }
 
 
-    /* Empty state styling */
-    .empty-message {
-      text-align: center;
-      margin: 80px auto;
-      max-width: 500px;
-      background: #fff;
-      border: 2px dashed #4a90e2;
-      border-radius: 12px;
-      padding: 40px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .empty-message .icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-    }
-    .empty-message h3 {
-      font-size: 26px;
-      color: #4a90e2;
-      margin-bottom: 10px;
-    }
-    .empty-message p {
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 25px;
-    }
-    .btn-upload {
-      display: inline-block;
-      padding: 14px 24px;
-      background: #4a90e2;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: bold;
-      transition: background 0.3s ease, transform 0.2s ease;
-    }
-    .btn-upload:hover {
-      background: #357ab8;
-      transform: translateY(-2px);
-    }
-  </style>
+/* Header */
+
+.page-header{
+
+    background:linear-gradient(135deg,#4a90e2,#6bb6ff);
+
+    color:white;
+
+    padding:40px;
+
+    margin:30px 0;
+
+    border-radius:15px;
+
+    text-align:center;
+
+}
+
+
+/* Melody Card */
+
+.melody-card{
+
+    border:none;
+
+    border-radius:15px;
+
+    overflow:hidden;
+
+    transition:.3s;
+
+}
+
+
+.melody-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 10px 20px rgba(0,0,0,.15);
+
+}
+
+
+
+.melody-card img{
+
+    width:100%;
+
+    height:230px;
+
+    object-fit:cover;
+
+}
+
+
+
+audio{
+
+    width:100%;
+
+}
+
+
+
+/* Empty Message */
+
+.empty-state{
+
+    background:white;
+
+    padding:50px;
+
+    border-radius:15px;
+
+    text-align:center;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+
+}
+
+
+</style>
+
+
 </head>
+
+
 <body>
-  <?php include('navbar.php'); ?>
 
-  <div class="main-content">
-    <h2 class="page-title">Prayer Melodies</h2>
-    <?php
-    $melodies = $conn->query("SELECT * FROM melodies");
-    if ($melodies->num_rows > 0) {
-        echo "<div class='melodies-grid'>";
-        while ($row = $melodies->fetch_assoc()) {
-            echo "<div class='melody'>
-                    <h3>".htmlspecialchars($row['title'])."</h3>";
-            if (!empty($row['image']) && file_exists("uploads/image/{$row['image']}")) {
-                echo "<img src='uploads/image/{$row['image']}' alt='".htmlspecialchars($row['title'])."'>";
-            } else {
-                echo "<img src='uploads/image/default.jpg' alt='Default Melody Image'>";
-            }
-            if (!empty($row['description'])) {
-                echo "<p>".htmlspecialchars($row['description'])."</p>";
-            }
-            echo "<audio controls>
-                    <source src='uploads/audio/{$row['file']}' type='audio/mpeg'>
-                    Your browser does not support the audio element.
-                  </audio>
-                  </div>";
-        }
-        echo "</div>"; // close grid
-    } else {
-        echo "<div class='empty-message'>
-                <div class='icon'>🎵</div>
-                <h3>No Melodies Yet</h3>
-                <p>Share your first melody with the community.</p>
-                <a href='upload.php' class='btn-upload'>➕ Upload a Melody</a>
-              </div>";
-    }
-    ?>
-  </div>
 
-  <?php include('footer.php'); ?>
+<?php include("navbar.php"); ?>
+
+
+<div class="container">
+
+
+<!-- Page Header -->
+
+<div class="page-header">
+
+
+<h1>
+🎵 Prayer Melodies
+</h1>
+
+
+<p class="lead">
+
+Listen to peaceful prayer melodies for meditation and reflection.
+
+</p>
+
+
+</div>
+
+
+
+<!-- Search -->
+
+<form method="GET" class="row mb-5">
+
+
+<div class="col-md-10 mb-2">
+
+
+<input
+
+type="text"
+
+name="search"
+
+class="form-control"
+
+placeholder="Search prayer melodies..."
+
+value="<?php echo htmlspecialchars($keyword); ?>"
+
+>
+
+
+</div>
+
+
+
+<div class="col-md-2 d-grid">
+
+
+<button class="btn btn-primary">
+
+🔍 Search
+
+</button>
+
+
+</div>
+
+
+</form>
+
+
+
+
+<div class="row g-4">
+
+
+<?php
+
+
+if($melodies->num_rows > 0){
+
+
+while($row = $melodies->fetch_assoc()){
+
+
+
+$image = "uploads/image/default.jpg";
+
+
+if(!empty($row['image']) && 
+file_exists("uploads/image/".$row['image'])){
+
+
+    $image = "uploads/image/".$row['image'];
+
+
+}
+
+
+
+$audio = "";
+
+if(!empty($row['file'])){
+
+
+    $audio = "uploads/audio/".$row['file'];
+
+
+}
+
+
+?>
+
+
+
+<div class="col-lg-4 col-md-6">
+
+
+<div class="card melody-card shadow h-100">
+
+
+
+<img
+
+src="<?php echo $image; ?>"
+
+alt="<?php echo htmlspecialchars($row['title']); ?>"
+
+class="card-img-top"
+
+
+
+>
+
+
+
+<div class="card-body d-flex flex-column">
+
+
+
+<h4 class="text-primary text-center">
+
+
+<?php echo htmlspecialchars($row['title']); ?>
+
+
+</h4>
+
+
+
+
+<p class="text-center">
+
+
+<?php echo htmlspecialchars($row['description']); ?>
+
+
+</p>
+
+
+
+
+<div class="mt-auto">
+
+
+<audio controls>
+
+
+<source 
+
+src="<?php echo $audio; ?>"
+
+type="audio/mpeg">
+
+
+Your browser does not support audio playback.
+
+
+</audio>
+
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
+<?php
+
+
+}
+
+
+}else{
+
+
+?>
+
+
+<div class="col-12">
+
+
+<div class="empty-state">
+
+
+<h2>
+🎵 No Prayer Melodies Found
+</h2>
+
+
+<p class="text-muted">
+
+No prayer melodies are currently available.
+
+</p>
+
+
+
+<a href="upload.php" class="btn btn-success">
+
+➕ Upload Melody
+
+</a>
+
+
+</div>
+
+
+</div>
+
+
+
+<?php
+
+}
+
+?>
+
+
+</div>
+
+
+</div>
+
+
+<br/>
+<br/>
+
+<?php include("footer.php"); ?>
+
+
+
+<!-- Bootstrap JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+<script>
+
+
+// Audio interaction
+
+document.querySelectorAll("audio").forEach(audio=>{
+
+
+audio.addEventListener("play",function(){
+
+
+console.log("Prayer melody started playing");
+
+
+});
+
+
+});
+
+
+</script>
+
+
+
 </body>
+
 </html>

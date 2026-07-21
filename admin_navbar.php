@@ -3,7 +3,7 @@
   <li><a href="manage_sutras.php">Sutras</a></li>
   <li><a href="manage_melodies.php">Melodies</a></li>
   <li><a href="manage_users.php">Users</a></li>
-  <li><a href="upload.php">Uploads</a></li>
+  <li><a href="admin_upload.php">Uploads</a></li>
   <li><a href="logout.php">Logout</a></li>
 </ul>
 

@@ -1,169 +1,264 @@
 <?php
 session_start();
+
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['admin_id'])) {
     header("Location: user_login.php");
-    exit;
+    exit();
 }
+
 include('database/db.php');
+
+// Search
+$keyword = "";
+
+if (isset($_GET['search'])) {
+    $keyword = trim($_GET['search']);
+
+    $stmt = $conn->prepare("
+        SELECT *
+        FROM sutras
+        WHERE title LIKE CONCAT('%', ?, '%')
+        OR description LIKE CONCAT('%', ?, '%')
+        ORDER BY title ASC
+    ");
+
+    $stmt->bind_param("ss", $keyword, $keyword);
+    $stmt->execute();
+    $sutras = $stmt->get_result();
+
+} else {
+
+    $sutras = $conn->query("
+        SELECT *
+        FROM sutras
+        ORDER BY title ASC
+    ");
+
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Prayer Sutras</title>
-  <link rel="stylesheet" href="css/style.css">
-  <style>
-    .page-title { text-align:center; margin:30px 0; color:#2c3e50; font-size:28px; }
-.sutras-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
-  align-items: stretch;       /* ✅ all cards equal height */
-  justify-content: center;    /* ✅ grid centered */
-   text-align: center;
-    display: flex;
-   
-      align-items: center;
 
-  
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Prayer Sutras</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+
+body{
+    background:#f4f6f9;
 }
 
-.sutra {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* ✅ keeps button at bottom */
-  height: 100%;                   /* ✅ equal card height */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.page-header{
+    background:#4a90e2;
+    color:white;
+    padding:35px;
+    border-radius:12px;
+    text-align:center;
+    margin:30px 0;
 }
 
-.sutra img {
-  width: 100%;
-  height: 220px;        /* ✅ slightly taller for balance */
-  object-fit: cover;    /* ✅ crops to fill without distortion */
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  background: #eee;
+.card{
+    transition:.3s;
+    border:none;
 }
 
-.sutra h3 {
-  margin: 15px;
-  font-size: 22px;
-  color: #4a90e2;
-  text-align: center;
+.card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 10px 20px rgba(0,0,0,.15);
 }
 
-.sutra p {
-  margin: 0 15px 15px;
-  color: #555;
-  line-height: 1.6;
-  text-align: center;
-  flex-grow: 1; /* ✅ fills space evenly */
+.card img{
+    height:250px;
+    object-fit:cover;
 }
 
-.sutra a {
-  margin: 15px auto;
-  padding: 12px 18px;
-  background: #4a90e2;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 6px;
-  text-align: center;
-  transition: background 0.3s ease, transform 0.2s ease;
-  display: inline-block;
-}
-.sutra a:hover {
-  background: #357ab8;
-  transform: translateY(-2px);
+.btn-read{
+    width:100%;
 }
 
+.empty-state{
+    text-align:center;
+    background:white;
+    padding:60px;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
 
-    /* Empty state styling */
-    .empty-message {
-      text-align: center;
-      margin: 80px auto;
-      max-width: 500px;
-      background: #fff;
-      border: 2px dashed #4a90e2;
-      border-radius: 12px;
-      padding: 40px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .empty-message .icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-    }
-    .empty-message h3 {
-      font-size: 26px;
-      color: #4a90e2;
-      margin-bottom: 10px;
-    }
-    .empty-message p {
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 25px;
-    }
-    .btn-upload {
-      display: inline-block;
-      padding: 14px 24px;
-      background: #4a90e2;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: bold;
-      transition: background 0.3s ease, transform 0.2s ease;
-    }
-    .btn-upload:hover {
-      background: #357ab8;
-      transform: translateY(-2px);
-    }
-  </style>
+</style>
+
 </head>
+
 <body>
-  <?php include('navbar.php'); ?>
 
-  <div class="main-content">
-    <h2 class="page-title">Prayer Sutras</h2>
-    <?php
-    $sutras = $conn->query("SELECT * FROM sutras");
-    if ($sutras->num_rows > 0) {
-        echo "<div class='sutras-grid'>";
-        while ($row = $sutras->fetch_assoc()) {
-            echo "<div class='sutra'>
-                    <h3>".htmlspecialchars($row['title'])."</h3>";
-            if (!empty($row['image']) && file_exists("uploads/image/{$row['image']}")) {
-                echo "<img src='uploads/image/{$row['image']}' alt='".htmlspecialchars($row['title'])."'>";
-            } else {
-                echo "<img src='uploads/image/default.jpg' alt='Default Sutra Image'>";
-            }
-            echo "<p>".htmlspecialchars($row['description'])."</p>
-                  <a href='uploads/pdf/{$row['file']}' target='_blank'>📖 Read Sutra</a>
-                  </div>";
-        }
-        echo "</div>"; // close grid
-    } else {
-        echo "<div class='empty-message'>
-                <div class='icon'>📖</div>
-                <h3>No Sutras Yet</h3>
-                <p>Be the first to share a prayer for the community.</p>
-                <a href='upload.php' class='btn-upload'>➕ Upload a Sutra</a>
-              </div>";
-    }
-    ?>
-  </div>
+<?php include("navbar.php"); ?>
 
-  <?php include('footer.php'); ?>
+<div class="container">
+
+    <div class="page-header">
+
+        <h1>📖 Prayer Sutras</h1>
+
+        <p class="lead">
+            Browse, search and read prayer sutras for spiritual learning and reflection.
+        </p>
+
+    </div>
+
+    <form method="GET" class="row mb-4">
+
+        <div class="col-md-10 mb-2">
+
+            <input
+                type="text"
+                name="search"
+                class="form-control"
+                placeholder="Search prayer sutras..."
+                value="<?php echo htmlspecialchars($keyword); ?>">
+
+        </div>
+
+        <div class="col-md-2 d-grid">
+
+            <button class="btn btn-primary">
+
+                Search
+
+            </button>
+
+        </div>
+
+    </form>
+
+    <div class="row">
+
+<?php
+
+if($sutras->num_rows > 0){
+
+while($row = $sutras->fetch_assoc()){
+
+$image = "uploads/image/default.jpg";
+
+if(!empty($row['image']) && file_exists("uploads/image/".$row['image'])){
+
+    $image = "uploads/image/".$row['image'];
+
+}
+
+?>
+
+<div class="col-lg-4 col-md-6 mb-4">
+
+<div class="card shadow h-100">
+
+<img
+src="<?php echo $image; ?>"
+class="card-img-top"
+alt="<?php echo htmlspecialchars($row['title']); ?>">
+
+<div class="card-body d-flex flex-column">
+
+<h4 class="card-title text-primary">
+
+<?php echo htmlspecialchars($row['title']); ?>
+
+</h4>
+
+<p class="card-text">
+
+<?php echo htmlspecialchars($row['description']); ?>
+
+</p>
+
+<div class="mt-auto">
+
+<a
+href="uploads/pdf/<?php echo urlencode($row['file']); ?>"
+target="_blank"
+class="btn btn-primary btn-read">
+
+📖 Read Prayer Sutra
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<?php
+
+}
+
+}else{
+
+?>
+
+<div class="col-12">
+
+<div class="empty-state">
+
+<h2>📖 No Prayer Sutras Found</h2>
+
+<p class="text-muted">
+
+No prayer sutras are currently available.
+
+</p>
+
+<a href="upload.php" class="btn btn-success">
+
+Upload a Prayer Sutra
+
+</a>
+
+</div>
+
+</div>
+
+<?php
+
+}
+
+?>
+
+    </div>
+
+</div>
+<br/>
+<br/>
+<?php include("footer.php"); ?>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+const searchInput = document.querySelector("input[name='search']");
+
+searchInput.addEventListener("focus",function(){
+
+    this.style.boxShadow="0 0 8px rgba(74,144,226,.4)";
+
+});
+
+searchInput.addEventListener("blur",function(){
+
+    this.style.boxShadow="";
+
+});
+
+</script>
+
 </body>
 </html>
